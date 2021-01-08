@@ -484,14 +484,14 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.true;
 
 					const paragraph = editor.model.document.getRoot().getChild( 0 );
 					const expectedRange = editor.model.createRange(
 						editor.model.createPositionAt( paragraph, 1 ),
 						editor.model.createPositionAt( paragraph, 2 )
 					);
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:range' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -505,15 +505,16 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.true;
 
+					const firstParagraph = editor.model.document.getRoot().getChild( 0 );
 					const secondParagraph = editor.model.document.getRoot().getChild( 1 );
 					const expectedRange = editor.model.createRange(
-						editor.model.createPositionAt( secondParagraph, 0 ),
+						editor.model.createPositionAt( firstParagraph, 0 ),
 						editor.model.createPositionAt( secondParagraph, 3 )
 					);
 
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:range' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -530,15 +531,16 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.true;
 
+					const firstParagraph = editor.model.document.getRoot().getChild( 0 );
 					const secondParagraph = editor.model.document.getRoot().getChild( 1 );
 					const expectedRange = editor.model.createRange(
-						editor.model.createPositionAt( secondParagraph, 0 ),
+						editor.model.createPositionAt( firstParagraph, 3 ),
 						editor.model.createPositionAt( secondParagraph, 3 )
 					);
 
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:range' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -560,16 +562,10 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.true;
 
-					const firstNonEmptyElementInTheSelection = editor.model.document.getRoot().getChild( 3 );
-					const rangeEnd = editor.model.document.selection.getFirstRange().end;
-					const expectedRange = editor.model.createRange(
-						editor.model.createPositionAt( firstNonEmptyElementInTheSelection, 0 ),
-						editor.model.createPositionAt( rangeEnd, 0 )
-					);
-
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const expectedRange = editor.model.document.selection.getFirstRange();
+					const markerRange = editor.model.markers.get( 'link-ui:range' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -598,14 +594,14 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.true;
 
 					const paragraph = editor.model.document.getRoot().getChild( 0 );
 					const expectedRange = editor.model.createRange(
 						editor.model.createPositionAt( paragraph, 1 ),
 						editor.model.createPositionAt( paragraph, 1 )
 					);
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:position' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -623,14 +619,14 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.true;
 
 					const focus = editor.model.document.selection.focus;
 					const expectedRange = editor.model.createRange(
 						editor.model.createPositionAt( focus, 0 )
 					);
 
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:position' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -651,14 +647,14 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.true;
 
 					const focus = editor.model.document.selection.focus;
 					const expectedRange = editor.model.createRange(
 						editor.model.createPositionAt( focus, 0 )
 					);
 
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:position' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -680,14 +676,14 @@ describe( 'LinkUI', () => {
 
 					linkUIFeature._showUI();
 
-					expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+					expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.true;
 
 					const focus = editor.model.document.selection.focus;
 					const expectedRange = editor.model.createRange(
 						editor.model.createPositionAt( focus, 0 )
 					);
 
-					const markerRange = editor.model.markers.get( 'link-ui' ).getRange();
+					const markerRange = editor.model.markers.get( 'link-ui:position' ).getRange();
 
 					expect( markerRange.isEqual( expectedRange ) ).to.be.true;
 
@@ -774,11 +770,11 @@ describe( 'LinkUI', () => {
 		} );
 
 		it( 'should clear the fake visual selection from a selected text fragment', () => {
-			expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+			expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.true;
 
 			linkUIFeature._hideUI();
 
-			expect( editor.model.markers.has( 'link-ui' ) ).to.be.false;
+			expect( editor.model.markers.has( 'link-ui:position' ) ).to.be.false;
 		} );
 	} );
 
@@ -1388,12 +1384,12 @@ describe( 'LinkUI', () => {
 
 			it( 'should should clear the fake visual selection on formView#submit event', () => {
 				linkUIFeature._showUI();
-				expect( editor.model.markers.has( 'link-ui' ) ).to.be.true;
+				expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.true;
 
 				formView.urlInputView.fieldView.value = 'http://cksource.com';
 				formView.fire( 'submit' );
 
-				expect( editor.model.markers.has( 'link-ui' ) ).to.be.false;
+				expect( editor.model.markers.has( 'link-ui:range' ) ).to.be.false;
 			} );
 
 			it( 'should hide and reveal the #actionsView on formView#submit event', () => {

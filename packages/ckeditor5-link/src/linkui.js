@@ -21,7 +21,8 @@ import LinkActionsView from './ui/linkactionsview';
 
 import linkIcon from '../theme/icons/link.svg';
 
-const VISUAL_SELECTION_MARKER_NAME = 'link-ui';
+const VISUAL_SELECTION_POSITION_MARKER_NAME = 'link-ui:position';
+const VISUAL_SELECTION_RANGE_MARKER_NAME = 'link-ui:range';
 
 /**
  * The link UI plugin. It introduces the `'link'` and `'unlink'` buttons and support for the <kbd>Ctrl+K</kbd> keystroke.
@@ -84,7 +85,7 @@ export default class LinkUI extends Plugin {
 
 		// Renders a fake visual selection marker on an expanded selection.
 		editor.conversion.for( 'editingDowncast' ).markerToHighlight( {
-			model: VISUAL_SELECTION_MARKER_NAME,
+			model: VISUAL_SELECTION_RANGE_MARKER_NAME,
 			view: {
 				classes: [ 'ck-fake-link-selection' ]
 			}
@@ -92,7 +93,7 @@ export default class LinkUI extends Plugin {
 
 		// Renders a fake visual selection marker on a collapsed selection.
 		editor.conversion.for( 'editingDowncast' ).markerToElement( {
-			model: VISUAL_SELECTION_MARKER_NAME,
+			model: VISUAL_SELECTION_POSITION_MARKER_NAME,
 			view: {
 				name: 'span',
 				classes: [ 'ck-fake-link-selection', 'ck-fake-link-selection_collapsed' ]
@@ -585,11 +586,16 @@ export default class LinkUI extends Plugin {
 		const view = this.editor.editing.view;
 		const model = this.editor.model;
 		const viewDocument = view.document;
+		const mapper = this.editor.editing.mapper;
 		let target = null;
 
-		if ( model.markers.has( VISUAL_SELECTION_MARKER_NAME ) ) {
+		const hasPositionMarker = model.markers.has( VISUAL_SELECTION_POSITION_MARKER_NAME );
+		const hasRangeMarker = model.markers.has( VISUAL_SELECTION_RANGE_MARKER_NAME );
+
+		if ( hasPositionMarker || hasRangeMarker ) {
 			// There are cases when we highlight selection using a marker (#7705, #4721).
-			const markerViewElements = Array.from( this.editor.editing.mapper.markerNameToElements( VISUAL_SELECTION_MARKER_NAME ) );
+			const markerName = hasPositionMarker ? VISUAL_SELECTION_POSITION_MARKER_NAME : VISUAL_SELECTION_RANGE_MARKER_NAME;
+			const markerViewElements = Array.from( mapper.markerNameToElements( markerName ) );
 			const newRange = view.createRange(
 				view.createPositionBefore( markerViewElements[ 0 ] ),
 				view.createPositionAfter( markerViewElements[ markerViewElements.length - 1 ] )
@@ -656,29 +662,23 @@ export default class LinkUI extends Plugin {
 	 */
 	_showFakeVisualSelection() {
 		const model = this.editor.model;
+		const selection = model.document.selection;
 
 		model.change( writer => {
-			const range = model.document.selection.getFirstRange();
+			// Use collapsed marker if the selection is collapsed or it does not allow 'linkHref' attribute
+			// (i.e., non-collapsed selection over empty nodes).
+			const useCollapsedMarker = selection.isCollapsed || !model.schema.checkAttributeInSelection( selection, 'linkHref' );
+			const markerName = useCollapsedMarker ? VISUAL_SELECTION_POSITION_MARKER_NAME : VISUAL_SELECTION_RANGE_MARKER_NAME;
+			const range = useCollapsedMarker ? writer.createRange( selection.getLastPosition() ) : selection.getFirstRange();
 
-			if ( model.markers.has( VISUAL_SELECTION_MARKER_NAME ) ) {
-				writer.updateMarker( VISUAL_SELECTION_MARKER_NAME, { range } );
+			if ( model.markers.has( markerName ) ) {
+				writer.updateMarker( markerName, { range } );
 			} else {
-				if ( range.start.isAtEnd ) {
-					const focus = model.document.selection.focus;
-					const nextValidRange = getNextValidRange( range, focus, writer );
-
-					writer.addMarker( VISUAL_SELECTION_MARKER_NAME, {
-						usingOperation: false,
-						affectsData: false,
-						range: nextValidRange
-					} );
-				} else {
-					writer.addMarker( VISUAL_SELECTION_MARKER_NAME, {
-						usingOperation: false,
-						affectsData: false,
-						range
-					} );
-				}
+				writer.addMarker( markerName, {
+					usingOperation: false,
+					affectsData: false,
+					range
+				} );
 			}
 		} );
 	}
@@ -691,9 +691,15 @@ export default class LinkUI extends Plugin {
 	_hideFakeVisualSelection() {
 		const model = this.editor.model;
 
-		if ( model.markers.has( VISUAL_SELECTION_MARKER_NAME ) ) {
+		if ( model.markers.has( VISUAL_SELECTION_POSITION_MARKER_NAME ) ) {
 			model.change( writer => {
-				writer.removeMarker( VISUAL_SELECTION_MARKER_NAME );
+				writer.removeMarker( VISUAL_SELECTION_POSITION_MARKER_NAME );
+			} );
+		}
+
+		if ( model.markers.has( VISUAL_SELECTION_RANGE_MARKER_NAME ) ) {
+			model.change( writer => {
+				writer.removeMarker( VISUAL_SELECTION_RANGE_MARKER_NAME );
 			} );
 		}
 	}
@@ -706,28 +712,4 @@ export default class LinkUI extends Plugin {
 // @returns {module:engine/view/attributeelement~AttributeElement|null} Link element at the position or null.
 function findLinkElementAncestor( position ) {
 	return position.getAncestors().find( ancestor => isLinkElement( ancestor ) );
-}
-
-// Returns next valid range for the fake visual selection marker.
-//
-// @private
-// @param {module:engine/model/range~Range} range Current range.
-// @param {module:engine/model/position~Position} focus Selection focus.
-// @param {module:engine/model/writer~Writer} writer Writer.
-// @returns {module:engine/model/range~Range} New valid range for the fake visual selection marker.
-function getNextValidRange( range, focus, writer ) {
-	const nextStartPath = [ range.start.path[ 0 ] + 1, 0 ];
-	const nextStartPosition = writer.createPositionFromPath( range.start.root, nextStartPath, 'toNext' );
-	const nextRange = writer.createRange( nextStartPosition, range.end );
-
-	// Block creating a potential next valid range over the current range end.
-	if ( nextRange.start.path[ 0 ] > range.end.path[ 0 ] ) {
-		return writer.createRange( focus );
-	}
-
-	if ( nextStartPosition.isAtStart && nextStartPosition.isAtEnd ) {
-		return getNextValidRange( nextRange, focus, writer );
-	}
-
-	return nextRange;
 }
